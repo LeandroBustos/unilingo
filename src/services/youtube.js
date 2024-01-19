@@ -14,6 +14,7 @@ const getVideoDataById = async (id) => client.videos
     })
     .then((response) => {
         const videoInfo = response.data.items[0];
+        if (!videoInfo) throw new Error('Video Not Found')
         console.log('Información del Video:', videoInfo);
         return videoInfo
     })
