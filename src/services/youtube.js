@@ -15,9 +15,11 @@ const getVideoDataById = async (id) => client.videos
     .then((response) => {
         const videoInfo = response.data.items[0];
         console.log('Información del Video:', videoInfo);
+        return videoInfo
     })
     .catch((error) => {
         console.error('Error al obtener la información del video:', error.message);
+        return error
     });
 
 module.exports = {
