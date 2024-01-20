@@ -20,7 +20,7 @@ const getVideoDataById = async (id) => client.videos
     })
     .catch((error) => {
         console.error('Error al obtener la información del video:', error.message);
-        return error
+        throw error
     });
 
 module.exports = {
