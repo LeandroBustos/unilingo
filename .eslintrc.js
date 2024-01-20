@@ -14,5 +14,8 @@ module.exports = {
     indent: 0,
     semi: 0,
     'arrow-parens': 0,
+    'consistent-return': 0,
+    'prefer-destructuring': 0,
+    'no-self-assign': 0,
   },
 };
