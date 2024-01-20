@@ -5,7 +5,7 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 const { SpeechClient } = require('@google-cloud/speech');
 const { Translate } = require('@google-cloud/translate').v2;
-const { GOOGLE_APPLICATION_CREDENTIALS } = require('../core/config');
+const { GOOGLE_APPLICATION_CREDENTIALS, TRANSLATE_API_KEY } = require('../core/config');
 
 const { getVideoDataById } = require('../services/youtube');
 const { createVideo, getLastVideo } = require('../repositories/youtube');
@@ -17,7 +17,7 @@ const auth = new google.auth.GoogleAuth({
 
 const speech = new SpeechClient({ auth });
 const translate = new Translate({
-    key: "AIzaSyAipARRS1YIqIA9LkJeCCpPYU-pCBej5gY",
+    key: TRANSLATE_API_KEY,
 });
 const router = express.Router();
 
