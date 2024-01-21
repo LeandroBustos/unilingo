@@ -116,8 +116,7 @@ router.get('/video/:id/transcript/audio', async (req, res, next) => {
           const chunks = []
         for (let i = 0; i < audioContent.length; i += chunkSize) {
             // Detectar el idioma antes de enviar a Speech-to-Text
-            const detectedLanguage = await detectLanguage(chunks.slice(i, i + chunkSize));
-            chunks.push(detectedLanguage);
+            chunks.push(audioContent.slice(i, i + chunkSize));
         }
           res.status(200).json({ audio_content: chunks });
       })
