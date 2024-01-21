@@ -1,24 +1,27 @@
 const express = require('express');
-const { google } = require('googleapis');
+// const { google } = require('googleapis');
 const ytdl = require('ytdl-core');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
-const { SpeechClient } = require('@google-cloud/speech');
-const { Translate } = require('@google-cloud/translate').v2;
-const { GOOGLE_APPLICATION_CREDENTIALS, TRANSLATE_API_KEY } = require('../core/config');
+// const { SpeechClient } = require('@google-cloud/speech');
+// const { Translate } = require('@google-cloud/translate').v2;
+// const {
+//     GOOGLE_APPLICATION_CREDENTIALS,
+//     // TRANSLATE_API_KEY
+// } = require('../core/config');
 
 const { getVideoDataById } = require('../services/youtube');
 const { createVideo, getLastVideo } = require('../repositories/youtube');
 
-const auth = new google.auth.GoogleAuth({
-  credentials: GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-});
+// const auth = new google.auth.GoogleAuth({
+//   credentials: GOOGLE_APPLICATION_CREDENTIALS,
+//   scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+// });
 
-const speech = new SpeechClient({ auth });
-const translate = new Translate({
-    key: TRANSLATE_API_KEY,
-});
+// const speech = new SpeechClient({ auth });
+// const translate = new Translate({
+//     key: TRANSLATE_API_KEY,
+// });
 const router = express.Router();
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -53,10 +56,10 @@ router.get('/video/:id/info', async (req, res, next) => {
 //   return result.language;
 // };
 
-const translateText = async (text, targetLanguage) => {
-  const [translation] = await translate.translate(text, targetLanguage);
-  return translation;
-};
+// const translateText = async (text, targetLanguage) => {
+//   const [translation] = await translate.translate(text, targetLanguage);
+//   return translation;
+// };
 
 // const mostFrequentValue = (array) => {
 //   const frequency = new Map();
@@ -108,9 +111,9 @@ router.get('/video/:id/translate', async (req, res, next) => {
       tempAudioStream.on('end', async () => {
             const audioBuffer = Buffer.concat(audioChunks);
             const audioContent = audioBuffer.toString('base64');
-            const audio = {
-                content: audioContent,
-            };
+            // const audio = {
+            //     content: audioContent,
+            // };
 
             // const chunkSize = 100000; // Tamaño del fragmento, ajusta según tus necesidades
             // const detectedLenguages = [];
@@ -122,21 +125,21 @@ router.get('/video/:id/translate', async (req, res, next) => {
             // const mostFrequentDetectedLanguage = mostFrequentValue(detectedLenguages)
 
             // Transcribir el fragmento de audio
-            const config = {
-                encoding: 'LINEAR16',
-                sampleRateHertz: 16000,
-                languageCode: 'en',
-            };
+            // const config = {
+            //     encoding: 'LINEAR16',
+            //     sampleRateHertz: 16000,
+            //     languageCode: 'en',
+            // };
 
-            const request = {
-                audio,
-                config,
-            };
+            // const request = {
+            //     audio,
+            //     config,
+            // };
 
-            const [response] = await speech.recognize(request);
-            const transcription = response.results.map(result => result.alternatives[0].transcript).join(' ');
-            const translatedText = await translateText(transcription, 'es-ES');
-          res.status(200).json({ translatedText });
+            // const [response] = await speech.recognize(request);
+            // const transcription = response.results.map(result => result.alternatives[0].transcript).join(' ');
+            // const translatedText = await translateText(transcription, 'es-ES');
+          res.status(200).json({ audioContent });
       })
   } catch (error) {
         console.error('Error en la transcripción:', error);
