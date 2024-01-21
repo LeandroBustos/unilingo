@@ -48,34 +48,34 @@ router.get('/video/:id/info', async (req, res, next) => {
     }
 });
 
-const detectLanguage = async (text) => {
-  const [result] = await translate.detect(text);
-  return result.language;
-};
+// const detectLanguage = async (text) => {
+//   const [result] = await translate.detect(text);
+//   return result.language;
+// };
 
 const translateText = async (text, targetLanguage) => {
   const [translation] = await translate.translate(text, targetLanguage);
   return translation;
 };
 
-const mostFrequentValue = (array) => {
-  const frequency = new Map();
+// const mostFrequentValue = (array) => {
+//   const frequency = new Map();
 
-  let FrequentValue;
-  let maxFrequency = 0;
+//   let FrequentValue;
+//   let maxFrequency = 0;
 
-  for (const value of array) {
-    const currentFrequency = (frequency.get(value) || 0) + 1;
-    frequency.set(value, currentFrequency);
+//   for (const value of array) {
+//     const currentFrequency = (frequency.get(value) || 0) + 1;
+//     frequency.set(value, currentFrequency);
 
-    if (currentFrequency > maxFrequency) {
-      maxFrequency = currentFrequency;
-      FrequentValue = value;
-    }
-  }
+//     if (currentFrequency > maxFrequency) {
+//       maxFrequency = currentFrequency;
+//       FrequentValue = value;
+//     }
+//   }
 
-  return FrequentValue;
-}
+//   return FrequentValue;
+// }
 
 router.get('/video/:id/translate', async (req, res, next) => {
   try {
@@ -112,20 +112,20 @@ router.get('/video/:id/translate', async (req, res, next) => {
                 content: audioContent,
             };
 
-            const chunkSize = 100000; // Tamaño del fragmento, ajusta según tus necesidades
-            const detectedLenguages = [];
-            for (let i = 0; i < audioContent.length; i += chunkSize) {
-                // Detectar el idioma antes de enviar a Speech-to-Text
-                const detectedLanguage = await detectLanguage(audioContent.slice(i, i + chunkSize));
-                detectedLenguages.push(detectedLanguage);
-            }
-            const mostFrequentDetectedLanguage = mostFrequentValue(detectedLenguages)
+            // const chunkSize = 100000; // Tamaño del fragmento, ajusta según tus necesidades
+            // const detectedLenguages = [];
+            // for (let i = 0; i < audioContent.length; i += chunkSize) {
+            //     // Detectar el idioma antes de enviar a Speech-to-Text
+            //     const detectedLanguage = await detectLanguage(audioContent.slice(i, i + chunkSize));
+            //     detectedLenguages.push(detectedLanguage);
+            // }
+            // const mostFrequentDetectedLanguage = mostFrequentValue(detectedLenguages)
 
             // Transcribir el fragmento de audio
             const config = {
                 encoding: 'LINEAR16',
                 sampleRateHertz: 16000,
-                languageCode: mostFrequentDetectedLanguage,
+                languageCode: 'en',
             };
 
             const request = {
