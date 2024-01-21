@@ -110,15 +110,9 @@ router.get('/video/:id/transcript/audio', async (req, res, next) => {
     });
 
       tempAudioStream.on('end', async () => {
-        const audioBuffer = Buffer.concat(audioChunks);
-          const audioContent = audioBuffer.toString('base64');
-          const chunkSize = 100000;
-          const chunks = []
-        for (let i = 0; i < audioContent.length; i += chunkSize) {
-            // Detectar el idioma antes de enviar a Speech-to-Text
-            chunks.push(audioContent.slice(i, i + chunkSize));
-        }
-          res.status(200).json({ audio_content: chunks });
+            const audioBuffer = Buffer.concat(audioChunks);
+            const audioContent = audioBuffer.toString('base64');
+          res.status(200).json({ audio_content: audioContent });
       })
   } catch (err) {
         console.error('Error en la transcripción:', err);
