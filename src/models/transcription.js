@@ -4,6 +4,9 @@ const transcriptionSchema = new mongoose.Schema(
     {
         video_id: { type: String, required: true },
         transcription: { type: String, required: true },
+        language: { type: String, required: true },
+        created_at: { type: Date, required: true, default: Date.now },
+        updated_at: { type: Date, required: true, default: Date.now },
     },
     {
         versionKey: false,

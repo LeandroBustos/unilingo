@@ -4,14 +4,14 @@ const ytdl = require('ytdl-core');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 const { SpeechClient } = require('@google-cloud/speech');
-const { Translate } = require('@google-cloud/translate').v2;
+const translate = require('translate-google');
+const fetch = require('node-fetch');
 const {
     GOOGLE_APPLICATION_CREDENTIALS,
-    TRANSLATE_API_KEY,
 } = require('../core/config');
 
 const { getVideoDataById } = require('../services/youtube');
-const { createVideo, getLastVideo } = require('../repositories/youtube');
+const { createVideo, getLastVideo, updateVideoTranslation } = require('../repositories/youtube');
 const { createTranscription, getTranscriptionBySearch } = require('../repositories/transcription');
 
 const auth = new google.auth.GoogleAuth({
@@ -20,9 +20,6 @@ const auth = new google.auth.GoogleAuth({
 });
 
 const speech = new SpeechClient({ auth });
-const translate = new Translate({
-    key: TRANSLATE_API_KEY,
-});
 const router = express.Router();
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -52,34 +49,70 @@ router.get('/video/:id/info', async (req, res, next) => {
     }
 });
 
-// const detectLanguage = async (text) => {
-//   const [result] = await translate.detect(text);
-//   return result.language;
-// };
-
 const translateText = async (text, targetLanguage) => {
-  const [translation] = await translate.translate(text, targetLanguage);
-  return translation;
+  try {
+        const translation = await translate(text, { from: 'en', to: targetLanguage });
+        return translation;
+  } catch (error) {
+    console.error('Error during translation:', error.message);
+    throw error;
+  }
 };
 
-// const mostFrequentValue = (array) => {
-//   const frequency = new Map();
+router.get('/video/:id/translation', async (req, res, next) => {
+    const { id } = req.params
+    try {
+        const transcription = (await getTranscriptionBySearch({ video_id: id }))[0]
+        if (!transcription) throw new Error("Transcription not found")
 
-//   let FrequentValue;
-//   let maxFrequency = 0;
+            const audio_content = transcription.transcription
+           const audio = {
+                content: audio_content,
+            };
 
-//   for (const value of array) {
-//     const currentFrequency = (frequency.get(value) || 0) + 1;
-//     frequency.set(value, currentFrequency);
+            // Transcribir el fragmento de audio
+            const config = {
+                encoding: 'LINEAR16',
+                sampleRateHertz: 16000,
+                languageCode: transcription.language,
+            };
 
-//     if (currentFrequency > maxFrequency) {
-//       maxFrequency = currentFrequency;
-//       FrequentValue = value;
-//     }
-//   }
+            const request = {
+                audio,
+                config,
+            };
 
-//   return FrequentValue;
-// }
+            const [response] = await speech.recognize(request);
+            const transcriptionText = response.results.map(result => result.alternatives[0].transcript).join(' ');
+            const translatedText = await translateText(transcriptionText, 'es');
+        return res.json({ translation: translatedText });
+    } catch (err) {
+        console.error('Error en la transcripción:', err);
+        res.status(500)
+        next()
+    }
+});
+
+router.post('/video/thumbnail/download', async (req, res) => {
+    const { thumbnail } = req.body
+    console.log(thumbnail, req.body)
+    const imageUrl = thumbnail;
+
+  try {
+    const response = await fetch(imageUrl);
+    const imageBuffer = await response.buffer();
+
+    // Convert the Buffer to a base64 string
+    const base64Image = imageBuffer.toString('base64');
+    const dataUri = `data:${response.headers.get('content-type')};base64,${base64Image}`;
+
+    // Send the Buffer as the response
+    res.send({ image: dataUri });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al procesar la solicitud.');
+  }
+});
 
 router.post('/video/:id/transcript/audio', async (req, res, next) => {
   try {
@@ -112,11 +145,17 @@ router.post('/video/:id/transcript/audio', async (req, res, next) => {
       tempAudioStream.on('end', async () => {
         const audioBuffer = Buffer.concat(audioChunks);
         const audioContent = audioBuffer.toString('base64');
+
         const transcription = await createTranscription({
             video_id: id,
             transcription: audioContent,
+            language: 'en',
         })
-        res.status(200).json({ id: transcription._id, video_id: id });
+          res.status(200).json({
+              id: transcription._id,
+              video_id: id,
+              language: 'en',
+          });
       })
   } catch (err) {
         console.error('Error en la transcripción:', err);
@@ -125,53 +164,22 @@ router.post('/video/:id/transcript/audio', async (req, res, next) => {
   }
 });
 
-router.get('/video/:id/translation', async (req, res, next) => {
-    const { id } = req.params
-    try {
-        const transcription = (await getTranscriptionBySearch({ video_id: id }))[0]
-        if (!transcription) throw new Error("Transcription not found")
-
-            const audio_content = transcription.transcription
-           const audio = {
-                content: audio_content,
-            };
-
-            // const chunkSize = 100000; // Tamaño del fragmento, ajusta según tus necesidades
-            // const detectedLenguages = [];
-            // for (let i = 0; i < audio_content.length; i += chunkSize) {
-            //     // Detectar el idioma antes de enviar a Speech-to-Text
-            //     const detectedLanguage = await detectLanguage(audio_content.slice(i, i + chunkSize));
-            //     detectedLenguages.push(detectedLanguage);
-            // }
-            // const mostFrequentDetectedLanguage = mostFrequentValue(detectedLenguages)
-
-            // Transcribir el fragmento de audio
-            const config = {
-                encoding: 'LINEAR16',
-                sampleRateHertz: 16000,
-                languageCode: 'en',
-            };
-
-            const request = {
-                audio,
-                config,
-            };
-
-            const [response] = await speech.recognize(request);
-            const transcriptionText = response.results.map(result => result.alternatives[0].transcript).join(' ');
-            const translatedText = await translateText(transcriptionText, 'es-ES');
-        return res.json({ translation: translatedText });
-    } catch (err) {
-        console.error('Error en la transcripción:', err);
-        res.status(500)
-        next()
-    }
-});
-
 router.post('/video/:id', async (req, res, next) => {
     const { title } = req.body
     try {
         const video = await createVideo({ title })
+        return res.json(video);
+    } catch (err) {
+        next()
+    }
+});
+
+router.patch('/video/:id/translation', async (req, res, next) => {
+    const { id } = req.params
+    const { translation } = req.body
+
+    try {
+        const video = await updateVideoTranslation({ video_id: id, translation })
         return res.json(video);
     } catch (err) {
         next()

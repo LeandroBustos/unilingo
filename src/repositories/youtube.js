@@ -34,8 +34,18 @@ const createVideo = async videoData => VideoModel.findOneAndUpdate(
         throw new Error(`Error creating client: ${err}`)
     })
 
+const updateVideoTranslation = async videoData => VideoModel.findOneAndUpdate(
+    { video_id: videoData.video_id },
+    { $set: { translation: videoData.translation } },
+    { new: true },
+).catch(err => {
+    console.log('Error creating video', err)
+    throw new Error(`Error creating client: ${err}`)
+})
+
 module.exports = {
     getVideoBySearch,
     getLastVideo,
     createVideo,
+    updateVideoTranslation,
 }
