@@ -177,9 +177,9 @@ router.post('/video/:id', async (req, res, next) => {
 router.patch('/video/:id/translation', async (req, res, next) => {
     const { id } = req.params
     const { translation } = req.body
-
     try {
         const video = await updateVideoTranslation({ video_id: id, translation })
+
         return res.json(video);
     } catch (err) {
         next()

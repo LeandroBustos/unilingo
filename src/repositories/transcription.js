@@ -17,7 +17,7 @@ const getTranscriptionBySearch = async transcriptionData => {
 }
 
 const createTranscription = async transcriptionData => TranscriptionModel.findOneAndUpdate(
-        { video_id: transcriptionData.id },
+        { video_id: transcriptionData.video_id },
         transcriptionData,
         { new: true, upsert: true, timestamps: false },
     ).catch(err => {
