@@ -4,6 +4,7 @@ const decodedBuffer = Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'b
 const jsonString = decodedBuffer.toString('utf-8');
 
 module.exports = {
+    MAINTENANCE: process.env.MAINTENANCE,
     PORT: process.env.PORT || 3000,
     MONGODB_URI: process.env.MONGODB_URI,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,

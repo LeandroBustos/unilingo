@@ -5,8 +5,14 @@ const cors = require('cors');
 
 const middlewares = require('./middlewares');
 const api = require('./api');
+const { MAINTENANCE } = require('./core/config');
 
 const app = express();
+
+app.use((req, res, next) => {
+  if (MAINTENANCE) next(new Error("Maintenance mode: ON"))
+  next()
+})
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
